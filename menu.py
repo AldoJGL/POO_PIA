@@ -1,25 +1,58 @@
+import tkinter as tk
+from tkinter import messagebox
 from consultar import consultar_equipos
 from prestamo import pedir_prestamo
-from devoluciones import devolver_equipo
 
 def mostrar_menu(nombre, id_alumno):
-    while True:
-        print(f"\n|--- Menu Principal ({nombre}) ---|")
-        print("1. Consultar equipos disponibles")
-        print("2. Pedir prestamo de equipo")
-        print("3. Devolver equipo")
-        print("4. Cerrar sesion")
+    ventana = tk.Tk()
+    ventana.title(f"Menu Principal - {nombre}")
+    ventana.geometry("900x600")
+    ventana.configure(bg="#E0E0E0")
+    ventana.resizable(False, False)
 
-        opcion = input("Selecciona una opcion: ")
+    navbar = tk.Frame(ventana, bg="#1A3E5C", height=300)
+    navbar.pack(fill="x")
 
-        if opcion == "1":
-            consultar_equipos()
-        elif opcion == "2":
-            pedir_prestamo(id_alumno)
-        elif opcion == "3":
-            devolver_equipo(id_alumno)
-        elif opcion == "4":
-            print("Cerrando sesion...\n")
-            break
-        else:
-            print("Opcion no valida")
+    titulo = tk.Label(navbar,
+                      text=f"Menu Principal - {nombre}",
+                      bg="#1A3E5C",
+                      fg="white",
+                      font=("Arial", 20, "bold"),
+                      anchor="w",
+                      padx=20)
+    titulo.pack(fill="both", expand=True)
+
+    frame_contenido = tk.Frame(ventana, bg="#E0E0E0")
+    frame_contenido.pack(expand=True, pady=80)
+
+    def boton_estilo(texto, comando):
+        return tk.Button(frame_contenido,
+                         text=texto,
+                         bg="#1A3E5C",
+                         fg="white",
+                         font=("Arial", 12, "bold"),
+                         relief="flat",
+                         width=30,
+                         height=2,
+                         command=comando)
+
+    def accion_consultar():
+        consultar_equipos()
+
+    def accion_prestamo():
+        pedir_prestamo(id_alumno)
+
+    def accion_cerrar():
+        if messagebox.askyesno("Cerrar sesion", "¿Seguro que quieres cerrar sesion?"):
+            ventana.destroy()
+
+    boton1 = boton_estilo("Consultar equipos disponibles", accion_consultar)
+    boton1.pack(pady=10)
+
+    boton2 = boton_estilo("Pedir prestamo de equipo", accion_prestamo)
+    boton2.pack(pady=10)
+
+    boton4 = boton_estilo("Cerrar sesioin", accion_cerrar)
+    boton4.pack(pady=10)
+
+    ventana.mainloop()
