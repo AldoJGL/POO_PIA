@@ -1,7 +1,9 @@
+import tkinter as tk
+from tkinter import messagebox, ttk
 from conn import conectar
 import sqlite3
 
-def pedir_prestamo(id_alumno):
+def pedir_prestamo(id_alumno, menu_anterior=None):
     conexion = conectar()
     cursor = conexion.cursor()
 
@@ -13,48 +15,108 @@ def pedir_prestamo(id_alumno):
     equipos = cursor.fetchall()
 
     if not equipos:
-        print("\n No hay equipos disponibles para prestamo.")
+        messagebox.showinfo("No hay equipos", "No hay equipos disponibles para prestamo.")
         conexion.close()
         return
 
-    print("\n|=== Equipos disponibles ===|")
-    print("{:<5} {:<25} {:<15} {:<15}".format("ID", "Nombre", "Serie", "Estado"))
-    print("-"*65)
+    ventana = tk.Tk()
+    ventana.title("Pedir prestamo - Taller de Computacioon")
+    ventana.geometry("800x500")
+    ventana.configure(bg="#E0E0E0")
+    ventana.resizable(False, False)
+
+    navbar = tk.Frame(ventana, bg="#1A3E5C", height=80)
+    navbar.pack(fill="x")
+    titulo = tk.Label(navbar,
+                      text="Equipos disponibles para prestamo",
+                      bg="#1A3E5C",
+                      fg="white",
+                      font=("Arial", 18, "bold"),
+                      anchor="w",
+                      padx=20)
+    titulo.pack(fill="both", expand=True)
+
+    frame_contenido = tk.Frame(ventana, bg="#E0E0E0")
+    frame_contenido.pack(expand=True, pady=20)
+
+    columnas = ("ID", "Nombre", "Serie", "Estado")
+    tree = ttk.Treeview(frame_contenido, columns=columnas, show="headings", height=10)
+    for col in columnas:
+        tree.heading(col, text=col)
+        tree.column(col, width=150, anchor="center")
+    tree.pack(pady=20)
+
     for eq in equipos:
-        id_eq, nombre, serie, estado = eq
-        print("{:<5} {:<25} {:<15} {:<15}".format(id_eq, nombre, serie, estado))
+        tree.insert("", tk.END, values=eq)
 
-    try:
-        id_equipo = int(input("\nIngresa el ID del equipo que desea pedir: "))
-    except ValueError:
-        print("ID inválido.")
-        conexion.close()
-        return
+    def solicitar_prestamo():
+        seleccion = tree.selection()
+        if not seleccion:
+            messagebox.showwarning("No se selecciono", "Selecciona un equipo de la lista.")
+            return
+        id_equipo = tree.item(seleccion[0])["values"][0]
 
-    cursor.execute("SELECT estado FROM equipos WHERE id_equipo = ?", (id_equipo,))
-    resultado = cursor.fetchone()
-    if not resultado:
-        print("No existe ese equipo.")
-        conexion.close()
-        return
+        cursor.execute("SELECT estado FROM equipos WHERE id_equipo = ?", (id_equipo,))
+        resultado = cursor.fetchone()
+        if not resultado:
+            messagebox.showerror("Error", "No existe ese equipo.")
+            return
 
-    estado_actual = resultado[0]
-    if estado_actual != "Disponible":
-        print("El equipo no esta disponible.")
-        conexion.close()
-        return
+        if resultado[0] != "Disponible":
+            messagebox.showerror("No disponible", "El equipo no esta disponible.")
+            return
 
-    try:
-        cursor.execute("""
-            INSERT INTO prestamos (id_equipo, id_alumno, devuelto)
-            VALUES (?, ?, 'No')
-        """, (id_equipo, id_alumno))
+        try:
+            cursor.execute("""
+                INSERT INTO prestamos (id_equipo, id_alumno, devuelto)
+                VALUES (?, ?, 'No')
+            """, (id_equipo, id_alumno))
+            conexion.commit()
 
-        cursor.execute("UPDATE equipos SET estado = 'Prestado' WHERE id_equipo = ?", (id_equipo,))
+            cursor.execute("""
+                INSERT INTO horarios (id_equipo, id_alumno, fecha_prestamo)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+            """, (id_equipo, id_alumno))
 
-        conexion.commit()
-        print("\nPrestamo registrado correctamente.")
-    except sqlite3.Error as e:
-        print(f"\nError al registrar el prestamo: {e}")
-    finally:
-        conexion.close()
+            cursor.execute("UPDATE equipos SET estado = 'Prestado' WHERE id_equipo = ?", (id_equipo,))
+            conexion.commit()
+
+            messagebox.showinfo("Registrado", "Prestamo registrado correctamente y horario actualizado.")
+            ventana.destroy()
+        except sqlite3.Error as e:
+            messagebox.showerror("Error", f"No se pudo registrar el prestamo:\n{e}")
+        finally:
+            conexion.close()
+
+    frame_botones = tk.Frame(frame_contenido, bg="#E0E0E0")
+    frame_botones.pack(pady=10)
+
+    boton_prestamo = tk.Button(frame_botones,
+                               text="Pedir prestamo",
+                               bg="#1A3E5C",
+                               fg="white",
+                               font=("Arial", 12, "bold"),
+                               relief="flat",
+                               width=20,
+                               height=2,
+                               command=solicitar_prestamo)
+    boton_prestamo.grid(row=0, column=0, padx=5)
+
+    def regresar():
+        ventana.destroy()
+        if menu_anterior:
+            menu_anterior()
+
+    boton_regresar = tk.Button(frame_botones,
+                               text="Regresar",
+                               bg="#1A3E5C",
+                               fg="white",
+                               font=("Arial", 12, "bold"),
+                               relief="flat",
+                               width=20,
+                               height=2,
+                               command=regresar)
+    boton_regresar.grid(row=0, column=1, padx=5)
+
+    ventana.mainloop()
+
