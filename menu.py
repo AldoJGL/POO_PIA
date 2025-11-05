@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from consultar import consultar_equipos
 from prestamo import pedir_prestamo
+from historial_alumno import historial_alumno
 
 def mostrar_menu(nombre, id_alumno):
     ventana = tk.Tk()
@@ -42,6 +43,10 @@ def mostrar_menu(nombre, id_alumno):
     def accion_prestamo():
         pedir_prestamo(id_alumno)
 
+    def accion_historial():
+        ventana.destroy()
+        historial_alumno(id_alumno, lambda: mostrar_menu(nombre, id_alumno))
+
     def accion_cerrar():
         if messagebox.askyesno("Cerrar sesion", "¿Seguro que quieres cerrar sesion?"):
             ventana.destroy()
@@ -52,7 +57,10 @@ def mostrar_menu(nombre, id_alumno):
     boton2 = boton_estilo("Pedir prestamo de equipo", accion_prestamo)
     boton2.pack(pady=10)
 
-    boton4 = boton_estilo("Cerrar sesioin", accion_cerrar)
+    boton3 = boton_estilo("Ver historial de prestamos", accion_historial)
+    boton3.pack(pady=10)
+
+    boton4 = boton_estilo("Cerrar sesion", accion_cerrar)
     boton4.pack(pady=10)
 
     ventana.mainloop()
