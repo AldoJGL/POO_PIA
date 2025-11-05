@@ -40,7 +40,7 @@ def registrar_empleado():
 
 def menu_admin(nombre, rol, id_usuario):
     ventana = tk.Tk()
-    ventana.title(f"Menú Administrador - {nombre} ({rol})")
+    ventana.title(f"Menu Administrador - {nombre} ({rol})")
     ventana.geometry("900x600")
     ventana.configure(bg="#E0E0E0")
     ventana.resizable(False, False)
@@ -49,7 +49,7 @@ def menu_admin(nombre, rol, id_usuario):
     navbar.pack(fill="x")
 
     titulo = tk.Label(navbar,
-                      text=f"Menú Admin - {nombre} ({rol})",
+                      text=f"Menu Admin - {nombre} ({rol})",
                       bg="#1A3E5C",
                       fg="white",
                       font=("Arial", 20, "bold"),
@@ -90,15 +90,15 @@ def menu_admin(nombre, rol, id_usuario):
         mantenimiento(id_usuario)
 
     def accion_salir():
-        if messagebox.askyesno("Cerrar sesión", "¿Seguro que quieres cerrar sesión?"):
+        if messagebox.askyesno("Cerrar sesion", "¿Seguro que quieres cerrar sesion?"):
             ventana.destroy()
 
     botones = [
-        ("Registrar devolución", accion_devolver),
+        ("Registrar devolucion", accion_devolver),
         ("Consultar equipos", accion_consultar),
         ("Agregar empleado", accion_registrar_empleado),
         ("Agregar equipo", accion_agregar_equipo),
-        ("Ver historial de préstamos", accion_ver_historial),
+        ("Ver historial de prestamos", accion_ver_historial),
         ("Mantenimiento de equipos", accion_mantenimiento),
         ("Salir", accion_salir)
     ]
@@ -108,3 +108,4 @@ def menu_admin(nombre, rol, id_usuario):
         boton.pack(pady=10)
 
     ventana.mainloop()
+
