@@ -4,8 +4,10 @@ from devoluciones import devolver_equipo
 from consultar import consultar_equipos
 from agregar_equipos import agregar_equipo
 from historial_prestamos import historial_prestamos
+from mantenimiento import mantenimiento
 from conn import conectar
 import hashlib
+
 
 def registrar_empleado():
     conexion = conectar()
@@ -17,7 +19,7 @@ def registrar_empleado():
     rol = tk.simpledialog.askstring("Rol", "Rol (empleado/administrador):").lower()
 
     if rol not in ["empleado", "administrador"]:
-        messagebox.showerror("Error", "Rol invalido. Debe ser 'empleado' o 'administrador'.")
+        messagebox.showerror("Error", "Rol inválido. Debe ser 'empleado' o 'administrador'.")
         conexion.close()
         return
 
@@ -29,7 +31,7 @@ def registrar_empleado():
             VALUES (?, ?, ?, ?)
         """, (nombre, rol, correo, contrasena_hash))
         conexion.commit()
-        messagebox.showinfo(f"Empleado '{nombre}' registrado correctamente.")
+        messagebox.showinfo("Éxito", f"Empleado '{nombre}' registrado correctamente.")
     except Exception as e:
         messagebox.showerror("Error", f"Error al registrar empleado: {e}")
     finally:
@@ -38,12 +40,12 @@ def registrar_empleado():
 
 def menu_admin(nombre, rol, id_usuario):
     ventana = tk.Tk()
-    ventana.title(f"Menu Administrador - {nombre} ({rol})")
+    ventana.title(f"Menú Administrador - {nombre} ({rol})")
     ventana.geometry("900x600")
     ventana.configure(bg="#E0E0E0")
     ventana.resizable(False, False)
 
-    navbar = tk.Frame(ventana, bg="#1A3E5C", height=300)
+    navbar = tk.Frame(ventana, bg="#1A3E5C", height=60)
     navbar.pack(fill="x")
 
     titulo = tk.Label(navbar,
@@ -55,8 +57,8 @@ def menu_admin(nombre, rol, id_usuario):
                       padx=20)
     titulo.pack(fill="both", expand=True)
 
-    frame_contenido = tk.Frame(ventana, bg="#E0E0E0")
-    frame_contenido.pack(expand=True, pady=80)
+    frame_contenido = tk.Frame(ventana, bg="#E0E0E0", pady=40)
+    frame_contenido.pack(fill="both", expand=True)
 
     def boton_estilo(texto, comando):
         return tk.Button(frame_contenido,
@@ -84,26 +86,25 @@ def menu_admin(nombre, rol, id_usuario):
     def accion_ver_historial():
         historial_prestamos()
 
+    def accion_mantenimiento():
+        mantenimiento(id_usuario)
+
     def accion_salir():
-        if messagebox.askyesno("Cerrar sesion", "¿Seguro que quieres cerrar sesion?"):
+        if messagebox.askyesno("Cerrar sesión", "¿Seguro que quieres cerrar sesión?"):
             ventana.destroy()
 
-    boton1 = boton_estilo("Registrar devolucion", accion_devolver)
-    boton1.pack(pady=10)
+    botones = [
+        ("Registrar devolución", accion_devolver),
+        ("Consultar equipos", accion_consultar),
+        ("Agregar empleado", accion_registrar_empleado),
+        ("Agregar equipo", accion_agregar_equipo),
+        ("Ver historial de préstamos", accion_ver_historial),
+        ("Mantenimiento de equipos", accion_mantenimiento),
+        ("Salir", accion_salir)
+    ]
 
-    boton2 = boton_estilo("Consultar equipos", accion_consultar)
-    boton2.pack(pady=10)
-
-    boton3 = boton_estilo("Agregar empleado", accion_registrar_empleado)
-    boton3.pack(pady=10)
-
-    boton4 = boton_estilo("Agregar equipo", accion_agregar_equipo)
-    boton4.pack(pady=10)
-
-    boton5 = boton_estilo("Ver historial de prestamos", accion_ver_historial)
-    boton5.pack(pady=10)
-
-    boton6 = boton_estilo("Salir", accion_salir)
-    boton6.pack(pady=10)
+    for texto, accion in botones:
+        boton = boton_estilo(texto, accion)
+        boton.pack(pady=10)
 
     ventana.mainloop()
